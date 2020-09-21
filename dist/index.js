@@ -78,12 +78,6 @@ class PixivApp {
             writable: true,
             value: void 0
         });
-        Object.defineProperty(this, "fetcher", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: (target, options) => instance(target, options)
-        });
         this.username = username;
         this.password = password;
         this.refreshToken = '';
@@ -165,7 +159,7 @@ class PixivApp {
         return Boolean(this.nextUrl);
     }
     next() {
-        return this.fetch(this.nextUrl);
+        return this.getRequest(this.nextUrl);
     }
     nextQuery() {
         // This always returns undefined
@@ -182,7 +176,7 @@ class PixivApp {
                     yield yield __await(resp);
                     while (resp[nextUrl]) {
                         // eslint-disable-next-line require-atomic-updates
-                        resp = yield __await(self.fetch(resp[nextUrl]));
+                        resp = yield __await(self.getRequest(resp[nextUrl]));
                         yield yield __await(resp);
                     }
                 });
@@ -191,11 +185,11 @@ class PixivApp {
     }
     userDetail(id, params) {
         params = Object.assign({ userId: id, filter }, params);
-        return this.fetch('/v1/user/detail', { params });
+        return this.getRequest('/v1/user/detail', { params });
     }
     userIllusts(id, params) {
         params = Object.assign({ userId: id, type: 'illust', filter }, params);
-        return this.fetch('/v1/user/illusts', { params });
+        return this.getRequest('/v1/user/illusts', { params });
     }
     // This endpoint doesn't exist
     userFollowAdd(id, params) {
@@ -203,7 +197,7 @@ class PixivApp {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id, restrict: 'public', filter }, params);
-        return this.fetch('/v1/user/follow/add', { params });
+        return this.getRequest('/v1/user/follow/add', { params });
     }
     // This endpoint doesn't exist
     userFollowDelete(id, params) {
@@ -211,35 +205,35 @@ class PixivApp {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id, restrict: 'public', filter }, params);
-        return this.fetch('/v1/user/follow/delete', { params });
+        return this.getRequest('/v1/user/follow/delete', { params });
     }
     userBookmarksIllust(id, params) {
         if (!id) {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id, restrict: 'public', filter }, params);
-        return this.fetch('/v1/user/bookmarks/illust', { params });
+        return this.getRequest('/v1/user/bookmarks/illust', { params });
     }
     userFollowing(id, params) {
         if (!id) {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id, restrict: 'public' }, params);
-        return this.fetch('/v1/user/following', { params });
+        return this.getRequest('/v1/user/following', { params });
     }
     userFollower(id, params) {
         if (!id) {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id }, params);
-        return this.fetch('/v1/user/follower', { params });
+        return this.getRequest('/v1/user/follower', { params });
     }
     userMypixiv(id, params) {
         if (!id) {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id }, params);
-        return this.fetch('/v1/user/mypixiv', { params });
+        return this.getRequest('/v1/user/mypixiv', { params });
     }
     // This endpoint doesn't exist
     userList(id, params) {
@@ -247,66 +241,66 @@ class PixivApp {
             return Promise.reject(new Error('userId required'));
         }
         params = Object.assign({ userId: id, filter }, params);
-        return this.fetch('/v1/user/list', { params });
+        return this.getRequest('/v1/user/list', { params });
     }
     illustDetail(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id, filter }, params);
-        return this.fetch('/v1/illust/detail', { params });
+        return this.getRequest('/v1/illust/detail', { params });
     }
     illustNew(params) {
         params = Object.assign({ contentType: 'illust', filter }, params);
-        return this.fetch('/v1/illust/new', { params });
+        return this.getRequest('/v1/illust/new', { params });
     }
     illustFollow(id, params) {
         params = Object.assign({ userId: id, restrict: 'public' }, params);
-        return this.fetch('/v2/illust/follow', { params });
+        return this.getRequest('/v2/illust/follow', { params });
     }
     illustComments(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id, includeTotalComments: true }, params);
-        return this.fetch('/v1/illust/comments', { params });
+        return this.getRequest('/v1/illust/comments', { params });
     }
     illustRelated(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id, filter }, params);
-        return this.fetch('/v2/illust/related', { params });
+        return this.getRequest('/v2/illust/related', { params });
     }
     illustRecommended(params) {
         params = Object.assign({ contentType: 'illust', includeRankingLabel: true, filter }, params);
-        return this.fetch('/v1/illust/recommended', { params });
+        return this.getRequest('/v1/illust/recommended', { params });
     }
     illustRecommendedNologin(params) {
         params = Object.assign({ includeRankingIllusts: true, filter }, params);
-        return this.fetch('/v1/illust/recommended-nologin', { params });
+        return this.getRequest('/v1/illust/recommended-nologin', { params });
     }
     illustRanking(params) {
         params = Object.assign({ mode: 'day', filter }, params);
-        return this.fetch('/v1/illust/ranking', { params });
+        return this.getRequest('/v1/illust/ranking', { params });
     }
     trendingTagsIllust(params) {
         params = Object.assign({ filter }, params);
-        return this.fetch('/v1/trending-tags/illust', { params });
+        return this.getRequest('/v1/trending-tags/illust', { params });
     }
     searchIllust(word, params) {
         if (!word) {
             return Promise.reject(new Error('Word required'));
         }
         params = Object.assign({ word, searchTarget: 'partial_match_for_tags', sort: 'date_desc', filter }, params);
-        return this.fetch('/v1/search/illust', { params });
+        return this.getRequest('/v1/search/illust', { params });
     }
     searchNovel(word, params) {
         if (!word) {
             return Promise.reject(new Error('Word required'));
         }
         params = Object.assign({ word, searchTarget: 'partial_match_for_tags', sort: 'date_desc', filter }, params);
-        return this.fetch('/v1/search/novel', { params });
+        return this.getRequest('/v1/search/novel', { params });
     }
     searchUser(word, params) {
         if (!word) {
@@ -314,66 +308,71 @@ class PixivApp {
         }
         params = Object.assign({ word,
             filter }, params);
-        return this.fetch('/v1/search/user', { params });
+        return this.getRequest('/v1/search/user', { params });
     }
     searchAutoComplete(word) {
         if (!word) {
             return Promise.reject(new Error('word required'));
         }
-        return this.fetch('/v1/search/autocomplete', { params: { word } });
+        return this.getRequest('/v1/search/autocomplete', { params: { word } });
     }
     illustBookmarkDetail(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id }, params);
-        return this.fetch('/v2/illust/bookmark/detail', { params });
+        return this.getRequest('/v2/illust/bookmark/detail', { params });
     }
     illustBookmarkAdd(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id, restrict: 'public' }, params);
-        return this.fetch('/v2/illust/bookmark/add', { data: params });
+        return this.getRequest('/v2/illust/bookmark/add', { data: params });
     }
     illustBookmarkDelete(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id }, params);
-        return this.fetch('/v1/illust/bookmark/delete', { data: params });
+        return this.getRequest('/v1/illust/bookmark/delete', { data: params });
     }
     userBookmarkTagsIllust(params) {
         params = Object.assign({ restrict: 'public' }, params);
-        return this.fetch('/v1/user/bookmark-tags/illust', { params });
+        return this.getRequest('/v1/user/bookmark-tags/illust', { params });
     }
     novelRecommended(params) {
         params = Object.assign({ includeRankingNovels: true, filter }, params);
-        return this.fetch('/v1/novel/recommended', { params });
+        return this.getRequest('/v1/novel/recommended', { params });
     }
     // This endpoint doesn't exist
     mangaNew(params) {
         params = Object.assign({ contentType: 'manga', filter }, params);
-        return this.fetch('/v1/manga/new', { params });
+        return this.getRequest('/v1/manga/new', { params });
     }
     mangaRecommended(params) {
         params = Object.assign({ includeRankingLabel: true, filter }, params);
-        return this.fetch('/v1/manga/recommended', { params });
+        return this.getRequest('/v1/manga/recommended', { params });
     }
     novelRecommendedNologin(params) {
         params = Object.assign({ includeRankingNovels: true, filter }, params);
-        return this.fetch('/v1/novel/recommended-nologin', { params });
+        return this.getRequest('/v1/novel/recommended-nologin', { params });
     }
     novelNew(params) {
         params = Object.assign({ filter }, params);
-        return this.fetch('/v1/novel/new', { params });
+        return this.getRequest('/v1/novel/new', { params });
     }
     ugoiraMetaData(id, params) {
         if (!id) {
             return Promise.reject(new Error('illustId required'));
         }
         params = Object.assign({ illustId: id, filter }, params);
-        return this.fetch('/v1/ugoira/metadata', { params });
+        return this.getRequest('/v1/ugoira/metadata', { params });
+    }
+    async getRequest(target, options) {
+        return {
+            target, options, fetch: (additionOption) => this.fetch(target, Object.assign(Object.assign({}, additionOption), options))
+        };
     }
     async fetch(target, options) {
         if (!target) {
@@ -404,7 +403,7 @@ class PixivApp {
         if (options.params) {
             options.params = decamelize_keys_1.default(options.params);
         }
-        const { data } = await this.fetcher(target, options);
+        const { data } = await instance(target, options);
         this.nextUrl = data && data.next_url ? data.next_url : null;
         return this.camelcaseKeys ? camelcase_keys_1.default(data, { deep: true }) : data;
     }
