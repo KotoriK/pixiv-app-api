@@ -53,7 +53,7 @@ const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj'
 const HASH_SECRET =
   '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 const filter = 'for_ios'
-
+export type OmittedAxiosConfig =Omit<AxiosRequestConfig,keyof PixivFetchOptions | 'url'>
 export default class PixivApp<CamelcaseKeys extends boolean = true> {
   camelcaseKeys: CamelcaseKeys
   username: string | undefined
@@ -62,11 +62,11 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
   nextUrl: string | null
   auth: PixivClient | null
   private _once: boolean
-
+  axiosConfig:Partial<OmittedAxiosConfig> | undefined
   constructor(
     username?: string,
     password?: string,
-    options?: { camelcaseKeys?: CamelcaseKeys }
+    options?: { camelcaseKeys?: CamelcaseKeys,axios?:Partial<OmittedAxiosConfig>}
   ) {
     this.username = username
     this.password = password
@@ -79,6 +79,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     } else {
       this.camelcaseKeys = true as CamelcaseKeys
     }
+    this.axiosConfig=options?.axios
   }
 
   async login(
@@ -692,7 +693,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (options.params) {
       options.params = decamelizeKeys(options.params)
     }
-    const { data } = await instance(target, options as AxiosRequestConfig)
+    const { data } = await instance(target, {...options,...this.axiosConfig} as AxiosRequestConfig)
     this.nextUrl = data && data.next_url ? data.next_url : null
     return this.camelcaseKeys ? camelcaseKeys(data, { deep: true }) : data
   }
