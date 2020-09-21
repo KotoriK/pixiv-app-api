@@ -661,6 +661,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (!target) {
       return Promise.reject(new Error('url required'))
     }
+
     try {
       return this._get(target, options)
     } catch (error) {
@@ -673,10 +674,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       return this._get(target, options)
     }
   }
-  fetcher: (target: string, options: AxiosRequestConfig) => any = (
-    target,
-    options
-  ) => instance(target, options)
+
   private async _get(
     target: string,
     options: PixivFetchOptions = {}
@@ -694,7 +692,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (options.params) {
       options.params = decamelizeKeys(options.params)
     }
-    const { data } = await this.fetcher(target, options as AxiosRequestConfig)
+    const { data } = await instance(target, options as AxiosRequestConfig)
     this.nextUrl = data && data.next_url ? data.next_url : null
     return this.camelcaseKeys ? camelcaseKeys(data, { deep: true }) : data
   }
