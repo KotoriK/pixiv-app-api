@@ -64,10 +64,10 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
   private _once: boolean
   axiosConfig:Partial<OmittedAxiosConfig> | undefined
   constructor(
-    username?: string,
-    password?: string,
-    options?: { camelcaseKeys?: CamelcaseKeys,axios?:Partial<OmittedAxiosConfig>}
+    options: {username?: string,
+    password?: string, camelcaseKeys?: CamelcaseKeys,axios?:Partial<OmittedAxiosConfig>}={}
   ) {
+    const {username,password,axios} = options
     this.username = username
     this.password = password
     this.refreshToken = ''
@@ -79,7 +79,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     } else {
       this.camelcaseKeys = true as CamelcaseKeys
     }
-    this.axiosConfig=options?.axios
+    this.axiosConfig=axios
   }
 
   async login(
