@@ -35,7 +35,7 @@ const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj';
 const HASH_SECRET = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c';
 const filter = 'for_ios';
 class PixivApp {
-    constructor(username, password, options) {
+    constructor(options = {}) {
         Object.defineProperty(this, "camelcaseKeys", {
             enumerable: true,
             configurable: true,
@@ -84,6 +84,7 @@ class PixivApp {
             writable: true,
             value: void 0
         });
+        const { username, password, axios } = options;
         this.username = username;
         this.password = password;
         this.refreshToken = '';
@@ -96,7 +97,7 @@ class PixivApp {
         else {
             this.camelcaseKeys = true;
         }
-        this.axiosConfig = options === null || options === void 0 ? void 0 : options.axios;
+        this.axiosConfig = axios;
     }
     async login(username, password) {
         this.username = username || this.username;

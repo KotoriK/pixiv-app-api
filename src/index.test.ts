@@ -10,7 +10,7 @@ const NAME = process.env.NAME as string
 jest.setTimeout(10000)
 
 function setup() {
-  return new PixivAppApi(NAME, PASSWORD)
+  return new PixivAppApi({username:NAME,password:PASSWORD})
 }
 
 const pixiv = setup()

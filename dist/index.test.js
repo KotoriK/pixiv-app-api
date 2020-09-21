@@ -12,7 +12,7 @@ const PASSWORD = process.env.PASSWORD;
 const NAME = process.env.NAME;
 jest.setTimeout(10000);
 function setup() {
-    return new _1.default(NAME, PASSWORD);
+    return new _1.default({ username: NAME, password: PASSWORD });
 }
 const pixiv = setup();
 let auth = null;
