@@ -105,18 +105,17 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     }
 
     const now_time = new Date()
-    const local_time = `${now_time.getUTCFullYear()}-${
-      now_time.getUTCMonth() + 1
-    }-${now_time.getUTCDate()}T${now_time
-      .getUTCHours()
-      .toString()
-      .padStart(2, '0')}:${now_time
-      .getUTCMinutes()
-      .toString()
-      .padStart(2, '0')}:${now_time
-      .getUTCSeconds()
-      .toString()
-      .padStart(2, '0')}+00:00`
+    const local_time = `${now_time.getUTCFullYear()}-${now_time.getUTCMonth() + 1
+      }-${now_time.getUTCDate()}T${now_time
+        .getUTCHours()
+        .toString()
+        .padStart(2, '0')}:${now_time
+          .getUTCMinutes()
+          .toString()
+          .padStart(2, '0')}:${now_time
+            .getUTCSeconds()
+            .toString()
+            .padStart(2, '0')}+00:00`
 
     const headers = {
       'X-Client-Time': local_time,
@@ -163,8 +162,8 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     type authInfoType = CamelcaseKeys extends true ? PixivClient : Pixiv_Client
     return this.camelcaseKeys
       ? ((camelcaseKeys(this.auth!, {
-          deep: true,
-        }) as unknown) as authInfoType)
+        deep: true,
+      }) as unknown) as authInfoType)
       : (this.auth as authInfoType)
   }
 
@@ -178,7 +177,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
   }
 
   next(): Promise<any> {
-    return this.fetch(this.nextUrl!)
+    return this.getRequest(this.nextUrl!)
   }
 
   nextQuery(): undefined | string {
@@ -196,7 +195,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
         yield resp
         while (resp[nextUrl]) {
           // eslint-disable-next-line require-atomic-updates
-          resp = await self.fetch(resp[nextUrl])
+          resp = await self.getRequest(resp[nextUrl])
           yield resp
         }
       },
@@ -212,7 +211,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/user/detail', { params })
+    return this.getRequest('/v1/user/detail', { params })
   }
 
   userIllusts(
@@ -227,7 +226,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/user/illusts', { params })
+    return this.getRequest('/v1/user/illusts', { params })
   }
 
   // This endpoint doesn't exist
@@ -241,7 +240,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/user/follow/add', { params })
+    return this.getRequest('/v1/user/follow/add', { params })
   }
 
   // This endpoint doesn't exist
@@ -255,7 +254,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/user/follow/delete', { params })
+    return this.getRequest('/v1/user/follow/delete', { params })
   }
 
   userBookmarksIllust(
@@ -273,7 +272,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/user/bookmarks/illust', { params })
+    return this.getRequest('/v1/user/bookmarks/illust', { params })
   }
 
   userFollowing(
@@ -288,7 +287,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       restrict: 'public',
       ...params,
     }
-    return this.fetch('/v1/user/following', { params })
+    return this.getRequest('/v1/user/following', { params })
   }
 
   userFollower(
@@ -302,7 +301,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       userId: id,
       ...params,
     }
-    return this.fetch('/v1/user/follower', { params })
+    return this.getRequest('/v1/user/follower', { params })
   }
 
   userMypixiv(
@@ -317,7 +316,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       ...params,
     }
 
-    return this.fetch('/v1/user/mypixiv', { params })
+    return this.getRequest('/v1/user/mypixiv', { params })
   }
 
   // This endpoint doesn't exist
@@ -331,7 +330,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       ...params,
     }
 
-    return this.fetch('/v1/user/list', { params })
+    return this.getRequest('/v1/user/list', { params })
   }
 
   illustDetail(
@@ -349,7 +348,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       ...params,
     }
 
-    return this.fetch('/v1/illust/detail', { params })
+    return this.getRequest('/v1/illust/detail', { params })
   }
 
   illustNew(
@@ -362,7 +361,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/illust/new', { params })
+    return this.getRequest('/v1/illust/new', { params })
   }
 
   illustFollow(
@@ -376,7 +375,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       restrict: 'public',
       ...params,
     }
-    return this.fetch('/v2/illust/follow', { params })
+    return this.getRequest('/v2/illust/follow', { params })
   }
 
   illustComments(
@@ -393,7 +392,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       includeTotalComments: true,
       ...params,
     }
-    return this.fetch('/v1/illust/comments', { params })
+    return this.getRequest('/v1/illust/comments', { params })
   }
 
   illustRelated(
@@ -410,7 +409,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v2/illust/related', { params })
+    return this.getRequest('/v2/illust/related', { params })
   }
 
   illustRecommended(
@@ -425,7 +424,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       ...params,
     }
 
-    return this.fetch('/v1/illust/recommended', { params })
+    return this.getRequest('/v1/illust/recommended', { params })
   }
 
   illustRecommendedNologin(
@@ -438,7 +437,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/illust/recommended-nologin', { params })
+    return this.getRequest('/v1/illust/recommended-nologin', { params })
   }
 
   illustRanking(
@@ -451,7 +450,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/illust/ranking', { params })
+    return this.getRequest('/v1/illust/ranking', { params })
   }
 
   trendingTagsIllust(
@@ -461,7 +460,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/trending-tags/illust', { params })
+    return this.getRequest('/v1/trending-tags/illust', { params })
   }
 
   searchIllust(
@@ -480,7 +479,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/search/illust', { params })
+    return this.getRequest('/v1/search/illust', { params })
   }
 
   searchNovel(
@@ -499,7 +498,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/search/novel', { params })
+    return this.getRequest('/v1/search/novel', { params })
   }
 
   searchUser(
@@ -514,7 +513,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/search/user', { params })
+    return this.getRequest('/v1/search/user', { params })
   }
 
   searchAutoComplete(
@@ -525,7 +524,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (!word) {
       return Promise.reject(new Error('word required'))
     }
-    return this.fetch('/v1/search/autocomplete', { params: { word } })
+    return this.getRequest('/v1/search/autocomplete', { params: { word } })
   }
 
   illustBookmarkDetail(
@@ -541,7 +540,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       illustId: id,
       ...params,
     }
-    return this.fetch('/v2/illust/bookmark/detail', { params })
+    return this.getRequest('/v2/illust/bookmark/detail', { params })
   }
 
   illustBookmarkAdd(id: number, params?: PixivParams): Promise<unknown> {
@@ -554,7 +553,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       ...params,
     }
 
-    return this.fetch('/v2/illust/bookmark/add', { data: params })
+    return this.getRequest('/v2/illust/bookmark/add', { data: params })
   }
 
   illustBookmarkDelete(id: number, params?: PixivParams): Promise<unknown> {
@@ -565,7 +564,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       illustId: id,
       ...params,
     }
-    return this.fetch('/v1/illust/bookmark/delete', { data: params })
+    return this.getRequest('/v1/illust/bookmark/delete', { data: params })
   }
 
   userBookmarkTagsIllust(
@@ -577,7 +576,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       restrict: 'public',
       ...params,
     }
-    return this.fetch('/v1/user/bookmark-tags/illust', { params })
+    return this.getRequest('/v1/user/bookmark-tags/illust', { params })
   }
 
   novelRecommended(
@@ -590,7 +589,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/novel/recommended', { params })
+    return this.getRequest('/v1/novel/recommended', { params })
   }
 
   // This endpoint doesn't exist
@@ -600,7 +599,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/manga/new', { params })
+    return this.getRequest('/v1/manga/new', { params })
   }
 
   mangaRecommended(
@@ -613,7 +612,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/manga/recommended', { params })
+    return this.getRequest('/v1/manga/recommended', { params })
   }
 
   novelRecommendedNologin(
@@ -627,7 +626,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       ...params,
     }
 
-    return this.fetch('/v1/novel/recommended-nologin', { params })
+    return this.getRequest('/v1/novel/recommended-nologin', { params })
   }
 
   novelNew(
@@ -639,7 +638,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/novel/new', { params })
+    return this.getRequest('/v1/novel/new', { params })
   }
 
   ugoiraMetaData(
@@ -654,9 +653,14 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       filter,
       ...params,
     }
-    return this.fetch('/v1/ugoira/metadata', { params })
+    return this.getRequest('/v1/ugoira/metadata', { params })
   }
 
+  async getRequest(target: string, options?: PixivFetchOptions): Promise<any> {
+    return {
+      target, options, fetch: (additionOption: Partial<AxiosRequestConfig>) => this.fetch(target, { ...additionOption, ...options })
+    }
+  }
   async fetch(target: string, options?: PixivFetchOptions): Promise<any> {
     if (!target) {
       return Promise.reject(new Error('url required'))
