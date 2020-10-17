@@ -37,7 +37,12 @@ import {
   PixivMangaSearch,
   PixivTrendTags,
 } from './PixivTypes'
-
+const publicHeaders = {
+  'App-OS': 'ios',
+  'App-OS-Version': '9.3.3',
+  'App-Version': '6.0.9',
+  "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
+}
 const baseURL = 'https://app-api.pixiv.net/'
 const CLIENT_ID = 'MOBrBDS8blbauoSck0ZfDbtuzpyT'
 const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj'
@@ -76,11 +81,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     this.axiosConfig = axios
     this._instance = Axios.create({
       baseURL,
-      headers: {
-        'App-OS': 'ios',
-        'App-OS-Version': '9.3.3',
-        'App-Version': '6.0.9',
-      },
+      headers: publicHeaders,
       ...axios
     })
   }
@@ -113,7 +114,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       'X-Client-Time': local_time,
       'X-Client-Hash': cryptoCreateHash('md5')
         .update(Buffer.from(`${local_time}${HASH_SECRET}`, 'utf8'))
-        .digest('hex'),
+        .digest('hex'),...publicHeaders
     }
 
     const data: PixivRequestData = {

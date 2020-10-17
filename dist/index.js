@@ -21,6 +21,12 @@ const url_1 = require("url");
 const axios_1 = __importDefault(require("axios"));
 const decamelize_keys_1 = __importDefault(require("decamelize-keys"));
 const camelcase_keys_1 = __importDefault(require("camelcase-keys"));
+const publicHeaders = {
+    'App-OS': 'ios',
+    'App-OS-Version': '9.3.3',
+    'App-Version': '6.0.9',
+    "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
+};
 const baseURL = 'https://app-api.pixiv.net/';
 const CLIENT_ID = 'MOBrBDS8blbauoSck0ZfDbtuzpyT';
 const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj';
@@ -96,11 +102,7 @@ class PixivApp {
             this.camelcaseKeys = true;
         }
         this.axiosConfig = axios;
-        this._instance = axios_1.default.create(Object.assign({ baseURL, headers: {
-                'App-OS': 'ios',
-                'App-OS-Version': '9.3.3',
-                'App-Version': '6.0.9',
-            } }, axios));
+        this._instance = axios_1.default.create(Object.assign({ baseURL, headers: publicHeaders }, axios));
     }
     async login(username, password) {
         this.username = username || this.username;
@@ -112,12 +114,9 @@ class PixivApp {
             return Promise.reject(new TypeError(`Auth is required. Expected a string, got ${typeof this.password}`));
         }
         const local_time = new Date().toISOString().replace(/\..+/, '') + '+00:00';
-        const headers = {
-            'X-Client-Time': local_time,
-            'X-Client-Hash': crypto_1.createHash('md5')
+        const headers = Object.assign({ 'X-Client-Time': local_time, 'X-Client-Hash': crypto_1.createHash('md5')
                 .update(Buffer.from(`${local_time}${HASH_SECRET}`, 'utf8'))
-                .digest('hex'),
-        };
+                .digest('hex') }, publicHeaders);
         const data = {
             clientId: CLIENT_ID,
             clientSecret: CLIENT_SECRET,
