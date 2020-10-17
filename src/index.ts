@@ -1,7 +1,7 @@
 import { stringify } from 'querystring'
 import { createHash as cryptoCreateHash } from 'crypto'
 import { parse as urlParse } from 'url'
-import axios, { AxiosRequestConfig } from 'axios'
+import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import decamelizeKeys from 'decamelize-keys'
 import camelcaseKeys from 'camelcase-keys'
 import {
@@ -39,21 +39,12 @@ import {
 } from './PixivTypes'
 
 const baseURL = 'https://app-api.pixiv.net/'
-const instance = axios.create({
-  baseURL,
-  headers: {
-    'App-OS': 'ios',
-    'App-OS-Version': '9.3.3',
-    'App-Version': '6.0.9',
-  },
-})
-
 const CLIENT_ID = 'MOBrBDS8blbauoSck0ZfDbtuzpyT'
 const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj'
 const HASH_SECRET =
   '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 const filter = 'for_ios'
-export type OmittedAxiosConfig =Omit<AxiosRequestConfig,keyof PixivFetchOptions | 'url'>
+export type OmittedAxiosConfig = Omit<AxiosRequestConfig, keyof PixivFetchOptions | 'url'>
 export default class PixivApp<CamelcaseKeys extends boolean = true> {
   camelcaseKeys: CamelcaseKeys
   username: string | undefined
@@ -62,12 +53,15 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
   nextUrl: string | null
   auth: PixivClient | null
   private _once: boolean
-  axiosConfig:Partial<OmittedAxiosConfig> | undefined
+  private _instance: AxiosInstance
+  readonly axiosConfig?: Partial<OmittedAxiosConfig>
   constructor(
-    options: {username?: string,
-    password?: string, camelcaseKeys?: CamelcaseKeys,axios?:Partial<OmittedAxiosConfig>}={}
+    options: {
+      username?: string,
+      password?: string, camelcaseKeys?: CamelcaseKeys, axios?: Partial<OmittedAxiosConfig>
+    } = {}
   ) {
-    const {username,password,axios} = options
+    const { username, password, axios } = options
     this.username = username
     this.password = password
     this.refreshToken = ''
@@ -79,7 +73,16 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     } else {
       this.camelcaseKeys = true as CamelcaseKeys
     }
-    this.axiosConfig=axios
+    this.axiosConfig = axios
+    this._instance = Axios.create({
+      baseURL,
+      headers: {
+        'App-OS': 'ios',
+        'App-OS-Version': '9.3.3',
+        'App-Version': '6.0.9',
+      },
+      ...axios
+    })
   }
 
   async login(
@@ -104,20 +107,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
         )
       )
     }
-
-    const now_time = new Date()
-    const local_time = `${now_time.getUTCFullYear()}-${
-      now_time.getUTCMonth() + 1
-    }-${now_time.getUTCDate()}T${now_time
-      .getUTCHours()
-      .toString()
-      .padStart(2, '0')}:${now_time
-      .getUTCMinutes()
-      .toString()
-      .padStart(2, '0')}:${now_time
-      .getUTCSeconds()
-      .toString()
-      .padStart(2, '0')}+00:00`
+    const local_time = new Date().toISOString().replace(/\..+/, '') + '+00:00'
 
     const headers = {
       'X-Client-Time': local_time,
@@ -145,10 +135,10 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       data.refreshToken = this.refreshToken
     }
 
-    const axiosResponse = await axios.post(
+    const axiosResponse = await Axios.post(
       'https://oauth.secure.pixiv.net/auth/token',
       stringify(decamelizeKeys(data)),
-      { headers }
+      { headers, ...this.axiosConfig }
     )
 
     const { response } = axiosResponse.data
@@ -164,14 +154,14 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     type authInfoType = CamelcaseKeys extends true ? PixivClient : Pixiv_Client
     return this.camelcaseKeys
       ? ((camelcaseKeys(this.auth!, {
-          deep: true,
-        }) as unknown) as authInfoType)
+        deep: true,
+      }) as unknown) as authInfoType)
       : (this.auth as authInfoType)
   }
 
   // eslint-disable-next-line class-methods-use-this
   set authToken(accessToken: string) {
-    instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+    this._instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`
   }
 
   hasNext(): boolean {
@@ -693,7 +683,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (options.params) {
       options.params = decamelizeKeys(options.params)
     }
-    const { data } = await instance(target, {...options,...this.axiosConfig} as AxiosRequestConfig)
+    const { data } = await this._instance(target, { ...options, ...this.axiosConfig } as AxiosRequestConfig)
     this.nextUrl = data && data.next_url ? data.next_url : null
     return this.camelcaseKeys ? camelcaseKeys(data, { deep: true }) : data
   }
