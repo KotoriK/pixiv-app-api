@@ -22,14 +22,6 @@ const axios_1 = __importDefault(require("axios"));
 const decamelize_keys_1 = __importDefault(require("decamelize-keys"));
 const camelcase_keys_1 = __importDefault(require("camelcase-keys"));
 const baseURL = 'https://app-api.pixiv.net/';
-const instance = axios_1.default.create({
-    baseURL,
-    headers: {
-        'App-OS': 'ios',
-        'App-OS-Version': '9.3.3',
-        'App-Version': '6.0.9',
-    },
-});
 const CLIENT_ID = 'MOBrBDS8blbauoSck0ZfDbtuzpyT';
 const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj';
 const HASH_SECRET = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c';
@@ -78,6 +70,12 @@ class PixivApp {
             writable: true,
             value: void 0
         });
+        Object.defineProperty(this, "_instance", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         Object.defineProperty(this, "axiosConfig", {
             enumerable: true,
             configurable: true,
@@ -98,6 +96,11 @@ class PixivApp {
             this.camelcaseKeys = true;
         }
         this.axiosConfig = axios;
+        this._instance = axios_1.default.create(Object.assign({ baseURL, headers: {
+                'App-OS': 'ios',
+                'App-OS-Version': '9.3.3',
+                'App-Version': '6.0.9',
+            } }, axios));
     }
     async login(username, password) {
         this.username = username || this.username;
@@ -108,17 +111,7 @@ class PixivApp {
         if (typeof this.password !== 'string') {
             return Promise.reject(new TypeError(`Auth is required. Expected a string, got ${typeof this.password}`));
         }
-        const now_time = new Date();
-        const local_time = `${now_time.getUTCFullYear()}-${now_time.getUTCMonth() + 1}-${now_time.getUTCDate()}T${now_time
-            .getUTCHours()
-            .toString()
-            .padStart(2, '0')}:${now_time
-            .getUTCMinutes()
-            .toString()
-            .padStart(2, '0')}:${now_time
-            .getUTCSeconds()
-            .toString()
-            .padStart(2, '0')}+00:00`;
+        const local_time = new Date().toISOString().replace(/\..+/, '') + '+00:00';
         const headers = {
             'X-Client-Time': local_time,
             'X-Client-Hash': crypto_1.createHash('md5')
@@ -143,7 +136,7 @@ class PixivApp {
             data.grantType = 'refresh_token';
             data.refreshToken = this.refreshToken;
         }
-        const axiosResponse = await axios_1.default.post('https://oauth.secure.pixiv.net/auth/token', querystring_1.stringify(decamelize_keys_1.default(data)), { headers });
+        const axiosResponse = await axios_1.default.post('https://oauth.secure.pixiv.net/auth/token', querystring_1.stringify(decamelize_keys_1.default(data)), Object.assign({ headers }, this.axiosConfig));
         const { response } = axiosResponse.data;
         this.auth = response;
         this.refreshToken = axiosResponse.data.response.refresh_token;
@@ -161,7 +154,7 @@ class PixivApp {
     }
     // eslint-disable-next-line class-methods-use-this
     set authToken(accessToken) {
-        instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        this._instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
     }
     hasNext() {
         return Boolean(this.nextUrl);
@@ -406,7 +399,7 @@ class PixivApp {
         if (options.params) {
             options.params = decamelize_keys_1.default(options.params);
         }
-        const { data } = await instance(target, Object.assign(Object.assign({}, options), this.axiosConfig));
+        const { data } = await this._instance(target, Object.assign(Object.assign({}, options), this.axiosConfig));
         this.nextUrl = data && data.next_url ? data.next_url : null;
         return this.camelcaseKeys ? camelcase_keys_1.default(data, { deep: true }) : data;
     }

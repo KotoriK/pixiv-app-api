@@ -10,7 +10,8 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     nextUrl: string | null;
     auth: PixivClient | null;
     private _once;
-    axiosConfig: Partial<OmittedAxiosConfig> | undefined;
+    private _instance;
+    readonly axiosConfig?: Partial<OmittedAxiosConfig>;
     constructor(options?: {
         username?: string;
         password?: string;
