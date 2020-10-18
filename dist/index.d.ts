@@ -1,7 +1,6 @@
-import { AxiosRequestConfig } from 'axios';
+import { Agents } from 'got';
 import { Pixiv_Client, Pixiv_User_Detail, Pixiv_Illust_Search, Pixiv_User_Search, Pixiv_Illust_Detail, Pixiv_Comment_Search, Pixiv_Trend_Tags, Pixiv_Novel_Search, Pixiv_Auto_Complete, Pixiv_Bookmark_Detail, Pixiv_Bookmark_Search, Ugoira_Meta_Data, Pixiv_Manga_Search } from './Pixiv_Types';
 import { PixivClient, PixivIllustSearch, PixivParams, PixivFetchOptions, PixivBookmarkDetail, PixivBookmarkSearch, PixivUserDetail, PixivUserSearch, PixivIllustDetail, PixivCommentSearch, PixivNovelSearch, PixivAutoComplete, UgoiraMetaData, PixivMangaSearch, PixivTrendTags } from './PixivTypes';
-export declare type OmittedAxiosConfig = Omit<AxiosRequestConfig, keyof PixivFetchOptions | 'url'>;
 export default class PixivApp<CamelcaseKeys extends boolean = true> {
     camelcaseKeys: CamelcaseKeys;
     username: string | undefined;
@@ -11,12 +10,12 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     auth: PixivClient | null;
     private _once;
     private _instance;
-    readonly axiosConfig?: Partial<OmittedAxiosConfig>;
+    readonly agents?: false | Agents | undefined;
     constructor(options?: {
         username?: string;
         password?: string;
         camelcaseKeys?: CamelcaseKeys;
-        axios?: Partial<OmittedAxiosConfig>;
+        agent?: false | Agents | undefined;
     });
     login(username?: string, password?: string): Promise<CamelcaseKeys extends true ? PixivClient : Pixiv_Client>;
     authInfo(): CamelcaseKeys extends true ? PixivClient : Pixiv_Client;

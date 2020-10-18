@@ -26,9 +26,9 @@ export interface PixivRequestData {
     clientSecret: string;
     getSecureUrl: string;
     grantType: string;
-    refreshToken: string;
-    username: string;
-    password: string;
+    refreshToken?: string;
+    username?: string;
+    password?: string;
 }
 export interface PixivParams {
     userId?: number;
@@ -48,6 +48,14 @@ export interface PixivParams {
     startDate?: string;
     endDate?: string;
     offset?: number;
+}
+export interface PixivFetchOptions_PreFetch {
+    form?: PixivParams;
+    method?: string;
+    headers?: {
+        [header: string]: string;
+    };
+    searchParams?: PixivParams;
 }
 export interface PixivFetchOptions {
     data?: PixivParams;

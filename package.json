@@ -42,9 +42,9 @@
     "pixiv-api"
   ],
   "dependencies": {
-    "axios": "^0.19.2",
     "camelcase-keys": "^6.2.1",
-    "decamelize-keys": "^1.1.0"
+    "decamelize-keys": "^1.1.0",
+    "got": "^11.7.0"
   },
   "devDependencies": {
     "@akameco/tsconfig": "^0.4.0",
@@ -52,7 +52,7 @@
     "@types/is-plain-obj": "^2.0.2",
     "@types/jest": "^25.1.4",
     "@types/lodash.isequal": "^4.5.5",
-    "@types/node": "^13.9.8",
+    "@types/node": "^13.13.26",
     "eslint": "^6.8.0",
     "eslint-config-precure": "^5.3.1",
     "husky": "^4.2.3",

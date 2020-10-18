@@ -1,9 +1,8 @@
-import { stringify } from 'querystring'
 import { createHash as cryptoCreateHash } from 'crypto'
 import { parse as urlParse } from 'url'
-import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import decamelizeKeys from 'decamelize-keys'
 import camelcaseKeys from 'camelcase-keys'
+import got, { Got, Agents } from 'got'
 import {
   Pixiv_Client,
   Pixiv_User_Detail,
@@ -36,6 +35,7 @@ import {
   UgoiraMetaData,
   PixivMangaSearch,
   PixivTrendTags,
+  PixivFetchOptions_PreFetch,
 } from './PixivTypes'
 const publicHeaders = {
   'App-OS': 'ios',
@@ -43,13 +43,12 @@ const publicHeaders = {
   'App-Version': '6.0.9',
   "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
 }
-const baseURL = 'https://app-api.pixiv.net/'
+const prefixUrl = 'https://app-api.pixiv.net'
 const CLIENT_ID = 'MOBrBDS8blbauoSck0ZfDbtuzpyT'
 const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj'
 const HASH_SECRET =
   '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 const filter = 'for_ios'
-export type OmittedAxiosConfig = Omit<AxiosRequestConfig, keyof PixivFetchOptions | 'url'>
 export default class PixivApp<CamelcaseKeys extends boolean = true> {
   camelcaseKeys: CamelcaseKeys
   username: string | undefined
@@ -58,15 +57,15 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
   nextUrl: string | null
   auth: PixivClient | null
   private _once: boolean
-  private _instance: AxiosInstance
-  readonly axiosConfig?: Partial<OmittedAxiosConfig>
+  private _instance: Got
+  readonly agents?: false | Agents | undefined
   constructor(
     options: {
       username?: string,
-      password?: string, camelcaseKeys?: CamelcaseKeys, axios?: Partial<OmittedAxiosConfig>
+      password?: string, camelcaseKeys?: CamelcaseKeys, agent?: false | Agents | undefined
     } = {}
   ) {
-    const { username, password, axios } = options
+    const { username, password, agent } = options
     this.username = username
     this.password = password
     this.refreshToken = ''
@@ -78,11 +77,10 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     } else {
       this.camelcaseKeys = true as CamelcaseKeys
     }
-    this.axiosConfig = axios
-    this._instance = Axios.create({
-      baseURL,
+    this.agents = agent
+    this._instance = got.extend({
       headers: publicHeaders,
-      ...axios
+      agent
     })
   }
 
@@ -114,7 +112,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       'X-Client-Time': local_time,
       'X-Client-Hash': cryptoCreateHash('md5')
         .update(Buffer.from(`${local_time}${HASH_SECRET}`, 'utf8'))
-        .digest('hex'),...publicHeaders
+        .digest('hex'), ...publicHeaders
     }
 
     const data: PixivRequestData = {
@@ -122,9 +120,6 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       clientSecret: CLIENT_SECRET,
       getSecureUrl: '1',
       grantType: '',
-      username: '',
-      password: '',
-      refreshToken: '',
     }
 
     if (this.refreshToken === '') {
@@ -136,16 +131,14 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       data.refreshToken = this.refreshToken
     }
 
-    const axiosResponse = await Axios.post(
-      'https://oauth.secure.pixiv.net/auth/token',
-      stringify(decamelizeKeys(data)),
-      { headers, ...this.axiosConfig }
-    )
+    const rawResponse = await got.post('https://oauth.secure.pixiv.net/auth/token', {
+      headers, agent: this.agents, responseType: 'json', form: decamelizeKeys(data)
+    })
 
-    const { response } = axiosResponse.data
+    const response: any = rawResponse.body
     this.auth = response
-    this.refreshToken = axiosResponse.data.response.refresh_token
-    this.authToken = response.access_token
+/*     this.refreshToken = axiosResponse.data.response.refresh_token
+ */    this.authToken = response.access_token
     return this.camelcaseKeys
       ? camelcaseKeys(response, { deep: true })
       : response
@@ -162,7 +155,11 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
 
   // eslint-disable-next-line class-methods-use-this
   set authToken(accessToken: string) {
-    this._instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+   this._instance= this._instance.extend({
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
   }
 
   hasNext(): boolean {
@@ -653,9 +650,9 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (!target) {
       return Promise.reject(new Error('url required'))
     }
-
+const _target = prefixUrl+target
     try {
-      return this._get(target, options)
+      return this._get(_target, options)
     } catch (error) {
       if (this._once) {
         this._once = false
@@ -663,7 +660,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
       }
       await this.login()
       this._once = true
-      return this._get(target, options)
+      return this._get(_target, options)
     }
   }
 
@@ -672,19 +669,17 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     options: PixivFetchOptions = {}
   ): Promise<any> {
     options = options || {}
-
+    let _options: PixivFetchOptions_PreFetch = {}
     if (options.data) {
-      options.method = 'post'
-      options.headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      }
-      options.data = stringify(decamelizeKeys(options.data)) as PixivParams
+      _options.method = 'post'
+      _options.form = decamelizeKeys(options.data)
     }
 
     if (options.params) {
-      options.params = decamelizeKeys(options.params)
+      _options.searchParams = decamelizeKeys(options.params)
     }
-    const { data } = await this._instance(target, { ...options, ...this.axiosConfig } as AxiosRequestConfig)
+    const { body } = await this._instance(target, { ..._options as any }).catch(err=>{options;debugger;throw err})
+    const data = JSON.parse(body)
     this.nextUrl = data && data.next_url ? data.next_url : null
     return this.camelcaseKeys ? camelcaseKeys(data, { deep: true }) : data
   }

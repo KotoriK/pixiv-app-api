@@ -15,19 +15,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const querystring_1 = require("querystring");
 const crypto_1 = require("crypto");
 const url_1 = require("url");
-const axios_1 = __importDefault(require("axios"));
 const decamelize_keys_1 = __importDefault(require("decamelize-keys"));
 const camelcase_keys_1 = __importDefault(require("camelcase-keys"));
+const got_1 = __importDefault(require("got"));
 const publicHeaders = {
     'App-OS': 'ios',
     'App-OS-Version': '9.3.3',
     'App-Version': '6.0.9',
     "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
 };
-const baseURL = 'https://app-api.pixiv.net/';
+const prefixUrl = 'https://app-api.pixiv.net';
 const CLIENT_ID = 'MOBrBDS8blbauoSck0ZfDbtuzpyT';
 const CLIENT_SECRET = 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj';
 const HASH_SECRET = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c';
@@ -82,13 +81,13 @@ class PixivApp {
             writable: true,
             value: void 0
         });
-        Object.defineProperty(this, "axiosConfig", {
+        Object.defineProperty(this, "agents", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: void 0
         });
-        const { username, password, axios } = options;
+        const { username, password, agent } = options;
         this.username = username;
         this.password = password;
         this.refreshToken = '';
@@ -101,8 +100,11 @@ class PixivApp {
         else {
             this.camelcaseKeys = true;
         }
-        this.axiosConfig = axios;
-        this._instance = axios_1.default.create(Object.assign({ baseURL, headers: publicHeaders }, axios));
+        this.agents = agent;
+        this._instance = got_1.default.extend({
+            headers: publicHeaders,
+            agent
+        });
     }
     async login(username, password) {
         this.username = username || this.username;
@@ -122,9 +124,6 @@ class PixivApp {
             clientSecret: CLIENT_SECRET,
             getSecureUrl: '1',
             grantType: '',
-            username: '',
-            password: '',
-            refreshToken: '',
         };
         if (this.refreshToken === '') {
             data.grantType = 'password';
@@ -135,11 +134,13 @@ class PixivApp {
             data.grantType = 'refresh_token';
             data.refreshToken = this.refreshToken;
         }
-        const axiosResponse = await axios_1.default.post('https://oauth.secure.pixiv.net/auth/token', querystring_1.stringify(decamelize_keys_1.default(data)), Object.assign({ headers }, this.axiosConfig));
-        const { response } = axiosResponse.data;
+        const rawResponse = await got_1.default.post('https://oauth.secure.pixiv.net/auth/token', {
+            headers, agent: this.agents, responseType: 'json', form: decamelize_keys_1.default(data)
+        });
+        const response = rawResponse.body;
         this.auth = response;
-        this.refreshToken = axiosResponse.data.response.refresh_token;
-        this.authToken = response.access_token;
+        /*     this.refreshToken = axiosResponse.data.response.refresh_token
+         */ this.authToken = response.access_token;
         return this.camelcaseKeys
             ? camelcase_keys_1.default(response, { deep: true })
             : response;
@@ -153,7 +154,11 @@ class PixivApp {
     }
     // eslint-disable-next-line class-methods-use-this
     set authToken(accessToken) {
-        this._instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        this._instance = this._instance.extend({
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
     }
     hasNext() {
         return Boolean(this.nextUrl);
@@ -373,8 +378,9 @@ class PixivApp {
         if (!target) {
             return Promise.reject(new Error('url required'));
         }
+        const _target = prefixUrl + target;
         try {
-            return this._get(target, options);
+            return this._get(_target, options);
         }
         catch (error) {
             if (this._once) {
@@ -383,22 +389,21 @@ class PixivApp {
             }
             await this.login();
             this._once = true;
-            return this._get(target, options);
+            return this._get(_target, options);
         }
     }
     async _get(target, options = {}) {
         options = options || {};
+        let _options = {};
         if (options.data) {
-            options.method = 'post';
-            options.headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-            options.data = querystring_1.stringify(decamelize_keys_1.default(options.data));
+            _options.method = 'post';
+            _options.form = decamelize_keys_1.default(options.data);
         }
         if (options.params) {
-            options.params = decamelize_keys_1.default(options.params);
+            _options.searchParams = decamelize_keys_1.default(options.params);
         }
-        const { data } = await this._instance(target, Object.assign(Object.assign({}, options), this.axiosConfig));
+        const { body } = await this._instance(target, Object.assign({}, _options)).catch(err => { options; debugger; throw err; });
+        const data = JSON.parse(body);
         this.nextUrl = data && data.next_url ? data.next_url : null;
         return this.camelcaseKeys ? camelcase_keys_1.default(data, { deep: true }) : data;
     }
