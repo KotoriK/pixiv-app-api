@@ -87,14 +87,14 @@ class PixivApp {
             writable: true,
             value: void 0
         });
-        const { username, password, agent } = options;
+        const { username, password, agent, cookieJar } = options;
         this.username = username;
         this.password = password;
         this.refreshToken = '';
         this.nextUrl = null;
         this.auth = null;
         this._once = false;
-        if (options) {
+        if (options.camelcaseKeys) {
             this.camelcaseKeys = Boolean(options.camelcaseKeys);
         }
         else {
@@ -103,7 +103,7 @@ class PixivApp {
         this.agents = agent;
         this._instance = got_1.default.extend({
             headers: publicHeaders,
-            agent
+            agent, cookieJar
         });
     }
     async login(username, password) {

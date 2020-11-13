@@ -2,7 +2,7 @@ import { createHash as cryptoCreateHash } from 'crypto'
 import { parse as urlParse } from 'url'
 import decamelizeKeys from 'decamelize-keys'
 import camelcaseKeys from 'camelcase-keys'
-import got, { Got, Agents } from 'got'
+import got, { Got, Agents, PromiseCookieJar, ToughCookieJar } from 'got'
 import {
   Pixiv_Client,
   Pixiv_User_Detail,
@@ -62,17 +62,17 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
   constructor(
     options: {
       username?: string,
-      password?: string, camelcaseKeys?: CamelcaseKeys, agent?: false | Agents | undefined
+      password?: string, camelcaseKeys?: CamelcaseKeys, agent?: false | Agents | undefined, cookieJar?: PromiseCookieJar | ToughCookieJar
     } = {}
   ) {
-    const { username, password, agent } = options
+    const { username, password, agent, cookieJar } = options
     this.username = username
     this.password = password
     this.refreshToken = ''
     this.nextUrl = null
     this.auth = null
     this._once = false
-    if (options) {
+    if (options.camelcaseKeys) {
       this.camelcaseKeys = Boolean(options.camelcaseKeys) as CamelcaseKeys
     } else {
       this.camelcaseKeys = true as CamelcaseKeys
@@ -80,7 +80,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     this.agents = agent
     this._instance = got.extend({
       headers: publicHeaders,
-      agent
+      agent, cookieJar
     })
   }
 
@@ -155,7 +155,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
 
   // eslint-disable-next-line class-methods-use-this
   set authToken(accessToken: string) {
-   this._instance= this._instance.extend({
+    this._instance = this._instance.extend({
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
@@ -650,7 +650,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
     if (!target) {
       return Promise.reject(new Error('url required'))
     }
-const _target = prefixUrl+target
+    const _target = prefixUrl + target
     try {
       return this._get(_target, options)
     } catch (error) {
@@ -678,7 +678,7 @@ const _target = prefixUrl+target
     if (options.params) {
       _options.searchParams = decamelizeKeys(options.params)
     }
-    const { body } = await this._instance(target, { ..._options as any }).catch(err=>{options;debugger;throw err})
+    const { body } = await this._instance(target, { ..._options as any }).catch(err => { options; debugger; throw err })
     const data = JSON.parse(body)
     this.nextUrl = data && data.next_url ? data.next_url : null
     return this.camelcaseKeys ? camelcaseKeys(data, { deep: true }) : data

@@ -1,4 +1,4 @@
-import { Agents } from 'got';
+import { Agents, PromiseCookieJar, ToughCookieJar } from 'got';
 import { Pixiv_Client, Pixiv_User_Detail, Pixiv_Illust_Search, Pixiv_User_Search, Pixiv_Illust_Detail, Pixiv_Comment_Search, Pixiv_Trend_Tags, Pixiv_Novel_Search, Pixiv_Auto_Complete, Pixiv_Bookmark_Detail, Pixiv_Bookmark_Search, Ugoira_Meta_Data, Pixiv_Manga_Search } from './Pixiv_Types';
 import { PixivClient, PixivIllustSearch, PixivParams, PixivFetchOptions, PixivBookmarkDetail, PixivBookmarkSearch, PixivUserDetail, PixivUserSearch, PixivIllustDetail, PixivCommentSearch, PixivNovelSearch, PixivAutoComplete, UgoiraMetaData, PixivMangaSearch, PixivTrendTags } from './PixivTypes';
 export default class PixivApp<CamelcaseKeys extends boolean = true> {
@@ -16,6 +16,7 @@ export default class PixivApp<CamelcaseKeys extends boolean = true> {
         password?: string;
         camelcaseKeys?: CamelcaseKeys;
         agent?: false | Agents | undefined;
+        cookieJar?: PromiseCookieJar | ToughCookieJar;
     });
     login(username?: string, password?: string): Promise<CamelcaseKeys extends true ? PixivClient : Pixiv_Client>;
     authInfo(): CamelcaseKeys extends true ? PixivClient : Pixiv_Client;
